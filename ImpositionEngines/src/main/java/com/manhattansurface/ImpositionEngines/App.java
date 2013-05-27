@@ -17,8 +17,8 @@ public class App
     	
     	SignatureEngine1 se1 = new SignatureEngine1();
     	se1.impose(	"testjob",
-    				"/Users/ron/git/kernelomicron/shells.pdf",
-    				"/Users/ron/Desktop/digital_comp/",
+    				"source.pdf",
+    				"/dir/to/output/",
     				4,
     				true);
     	
