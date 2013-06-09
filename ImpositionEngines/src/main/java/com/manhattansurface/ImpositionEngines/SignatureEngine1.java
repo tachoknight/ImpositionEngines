@@ -101,18 +101,25 @@ public class SignatureEngine1
 			 * (makeSinglePDF == true) or multiple, one per signature
 			 */
 			Document document = null;
-			PdfWriter Pdfwriter = null;
+			PdfWriter outputPDFWriter = null;
 			PdfContentByte cb = null;
 			if (makeSinglePDF)
 			{
 				document = new Document(new Rectangle(width, height));
-				Pdfwriter = PdfWriter.getInstance(	document,
+				outputPDFWriter = PdfWriter.getInstance(	document,
 													new FileOutputStream(outputDirectory + jobName
 																			+ "_master"
 																			+ ".pdf"));
+
+				/*
+				 * Make sure that if there are empty pages in the source, to
+				 * have empty pages in the destination
+				 */
+				outputPDFWriter.setPageEmpty(false);
+
 				document.open();
 
-				cb = Pdfwriter.getDirectContent();
+				cb = outputPDFWriter.getDirectContent();
 			}
 
 			for (int sigNum = 0; sigNum < numberOfSignatures; ++sigNum)
@@ -124,14 +131,14 @@ public class SignatureEngine1
 				{
 					document = new Document(new Rectangle(width, height));
 					/* Set the name of the PDF */
-					Pdfwriter = PdfWriter.getInstance(	document,
+					outputPDFWriter = PdfWriter.getInstance(	document,
 														new FileOutputStream(outputDirectory + jobName
 																				+ "sig"
 																				+ (sigNum + 1)
 																				+ ".pdf"));
 					document.open();
 
-					cb = Pdfwriter.getDirectContent();
+					cb = outputPDFWriter.getDirectContent();
 				}
 				else
 				{
@@ -188,8 +195,8 @@ public class SignatureEngine1
 					document.newPage();
 
 					logger.debug("Currently working on page " + currentPageInDoc
-										+ " of "
-										+ numOfPages);
+									+ " of "
+									+ numOfPages);
 
 					/************************************************************************
 					 * Check whether we've run out of pages in our source
@@ -201,9 +208,9 @@ public class SignatureEngine1
 					if (currentPageInDoc > numOfPages)
 					{
 						logger.debug("-->" + currentPageInDoc
-											+ " > "
-											+ numOfPages
-											+ " so we added the page but not going further");
+										+ " > "
+										+ numOfPages
+										+ " so we added the page but not going further");
 						cb.beginText();
 						cb.setFontAndSize(bf, 19);
 						cb.showTextAligned(	PdfContentByte.ALIGN_CENTER,
@@ -257,15 +264,44 @@ public class SignatureEngine1
 					if (rightPageNum <= numOfPages)
 					{
 						logger.debug("On right side, adding page " + rightPageNum);
-						PdfImportedPage rightPage = Pdfwriter.getImportedPage(reader, rightPageNum);
+						PdfImportedPage rightPage = outputPDFWriter.getImportedPage(reader, rightPageNum);
 
+						/*
+						 * Check to see whether there is any content on the
+						 * page. If there isn't, then we'll insert a blank page.
+						 * Note that this does not take into account the
+						 * possibility there are specific visual tricks to make
+						 * it "seem" blank when in fact it isn't.
+						 */
+						if (rightPage.getInternalBuffer().size() == 0)
+						{
+							logger.debug("Found an empty page in source, adding blank page to destination");
+							document.newPage();
+						}
+
+						/* Now we actually add the content to our output PDF */
 						cb.addTemplate(rightPage, .5f, 0, 0, .5f, width / 2 + 60, 70); // 120
 					}
 
 					if (leftPageNum <= numOfPages)
 					{
 						logger.debug("On left side, adding page " + leftPageNum);
-						PdfImportedPage leftPage = Pdfwriter.getImportedPage(reader, leftPageNum);
+						PdfImportedPage leftPage = outputPDFWriter.getImportedPage(reader, leftPageNum);
+
+						/*
+						 * Check to see whether there is any content on the
+						 * page. If there isn't, then we'll insert a blank page.
+						 * Note that this does not take into account the
+						 * possibility there are specific visual tricks to make
+						 * it "seem" blank when in fact it isn't.
+						 */
+						if (leftPage.getInternalBuffer().size() == 0)
+						{
+							logger.debug("Found an empty page in source, adding blank page to destination");
+							document.newPage();
+						}
+
+						/* Now we actually add the content to our output PDF */
 						cb.addTemplate(leftPage, .5f, 0, 0, .5f, 60, 70); // 120
 					}
 				}
@@ -295,7 +331,7 @@ public class SignatureEngine1
 		}
 		catch (DocumentException e)
 		{
-			logger.error("Whoopsm got a DocumentException: " + e.getLocalizedMessage(),e);
+			logger.error("Whoops, got a DocumentException: " + e.getLocalizedMessage(), e);
 		}
 	}
 }
