@@ -84,6 +84,19 @@ public class SignatureEngine1
 			int maxPageNumInSig = PAGES_PER_SHEET * sheetsPerSignature;
 			logger.debug("Max Pages per Signature: " + maxPageNumInSig);
 
+			if (numOfPages < maxPageNumInSig)
+			{
+				logger.error("*** Source PDF has fewer pages than a signature (source has " + numOfPages
+								+ " page"
+								+ (numOfPages > 1 ? "s" : "\"\"")
+								+ " and there are "
+								+ maxPageNumInSig
+								+ " pages per signature).");
+				logger.error("*** Please adjust the source to fit " + maxPageNumInSig + " pages");
+				logger.error("*** NOT CONTINUING ***");
+				return;
+			}
+
 			/* Now loop for the total number of signatures we're going to make */
 			int firstPageOfSig = 0;
 
@@ -106,10 +119,10 @@ public class SignatureEngine1
 			if (makeSinglePDF)
 			{
 				document = new Document(new Rectangle(width, height));
-				outputPDFWriter = PdfWriter.getInstance(	document,
-													new FileOutputStream(outputDirectory + jobName
-																			+ "_master"
-																			+ ".pdf"));
+				outputPDFWriter = PdfWriter.getInstance(document,
+														new FileOutputStream(outputDirectory + jobName
+																				+ "_master"
+																				+ ".pdf"));
 
 				/*
 				 * Make sure that if there are empty pages in the source, to
@@ -131,11 +144,11 @@ public class SignatureEngine1
 				{
 					document = new Document(new Rectangle(width, height));
 					/* Set the name of the PDF */
-					outputPDFWriter = PdfWriter.getInstance(	document,
-														new FileOutputStream(outputDirectory + jobName
-																				+ "sig"
-																				+ (sigNum + 1)
-																				+ ".pdf"));
+					outputPDFWriter = PdfWriter.getInstance(document,
+															new FileOutputStream(outputDirectory + jobName
+																					+ "sig"
+																					+ (sigNum + 1)
+																					+ ".pdf"));
 					document.open();
 
 					cb = outputPDFWriter.getDirectContent();
@@ -264,7 +277,8 @@ public class SignatureEngine1
 					if (rightPageNum <= numOfPages)
 					{
 						logger.debug("On right side, adding page " + rightPageNum);
-						PdfImportedPage rightPage = outputPDFWriter.getImportedPage(reader, rightPageNum);
+						PdfImportedPage rightPage = outputPDFWriter.getImportedPage(reader,
+																					rightPageNum);
 
 						/*
 						 * Check to see whether there is any content on the
@@ -286,7 +300,8 @@ public class SignatureEngine1
 					if (leftPageNum <= numOfPages)
 					{
 						logger.debug("On left side, adding page " + leftPageNum);
-						PdfImportedPage leftPage = outputPDFWriter.getImportedPage(reader, leftPageNum);
+						PdfImportedPage leftPage = outputPDFWriter.getImportedPage(	reader,
+																					leftPageNum);
 
 						/*
 						 * Check to see whether there is any content on the
