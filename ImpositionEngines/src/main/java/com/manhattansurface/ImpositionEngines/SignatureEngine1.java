@@ -299,7 +299,10 @@ public class SignatureEngine1
 						 */
 
 						/* Now we actually add the content to our output PDF */
-						cb.addTemplate(rightPage, .5f, 0, 0, .5f, width / 2 + 60, 70); // 120
+						/* Parameter 6 sets the margin per the matrix:
+						 * http://stderr.org/doc/libitext-java-doc/www/tutorial/ch10.html
+						 */
+						cb.addTemplate(rightPage, .5f, 0, 0, .5f, width / 2 + 30, 140); 
 					}
 
 					if (leftPageNum <= numOfPages)
@@ -331,7 +334,7 @@ public class SignatureEngine1
 							 */
 
 							/* Now we actually add the content to our output PDF */
-							cb.addTemplate(leftPage, .5f, 0, 0, .5f, 60, 70); // 120
+							cb.addTemplate(leftPage, .5f, 0, 0, .5f, 60, 140); 
 						}
 					}
 				}
