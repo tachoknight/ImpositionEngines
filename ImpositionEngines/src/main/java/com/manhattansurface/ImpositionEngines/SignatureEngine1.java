@@ -40,6 +40,7 @@ public class SignatureEngine1
 			PdfReader reader = new PdfReader(fileName);
 
 			int numOfPages = reader.getNumberOfPages();
+			int origNumOfPages = numOfPages;
 			logger.debug("There are " + numOfPages + " in this document");
 
 			if (numOfPages % 2 != 0)
@@ -47,6 +48,9 @@ public class SignatureEngine1
 				logger.debug("Odd number of pages ... gonna be inserting one");
 				numOfPages = numOfPages + 1;
 			}
+
+			logger.debug("We are now going to say that there are " + numOfPages
+							+ " in this document");
 
 			/* The size of our document */
 			Rectangle psize = reader.getPageSize(1);
@@ -287,11 +291,12 @@ public class SignatureEngine1
 						 * possibility there are specific visual tricks to make
 						 * it "seem" blank when in fact it isn't.
 						 */
-						if (rightPage.getInternalBuffer().size() == 0)
-						{
-							logger.debug("Found an empty page in source, adding blank page to destination");
-							document.newPage();
-						}
+						/*
+						 * if (rightPage.getInternalBuffer().size() == 0) {
+						 * logger.debug(
+						 * "Found an empty page in source, adding blank page to destination"
+						 * ); document.newPage(); }
+						 */
 
 						/* Now we actually add the content to our output PDF */
 						cb.addTemplate(rightPage, .5f, 0, 0, .5f, width / 2 + 60, 70); // 120
@@ -300,24 +305,34 @@ public class SignatureEngine1
 					if (leftPageNum <= numOfPages)
 					{
 						logger.debug("On left side, adding page " + leftPageNum);
-						PdfImportedPage leftPage = outputPDFWriter.getImportedPage(	reader,
-																					leftPageNum);
-
-						/*
-						 * Check to see whether there is any content on the
-						 * page. If there isn't, then we'll insert a blank page.
-						 * Note that this does not take into account the
-						 * possibility there are specific visual tricks to make
-						 * it "seem" blank when in fact it isn't.
-						 */
-						if (leftPage.getInternalBuffer().size() == 0)
+						if (leftPageNum > origNumOfPages)
 						{
-							logger.debug("Found an empty page in source, adding blank page to destination");
+							logger.warn("...but there is no page " + leftPageNum
+										+ " in the document, so adding an empty");
 							document.newPage();
 						}
+						else
+						{
+							PdfImportedPage leftPage = outputPDFWriter.getImportedPage(	reader,
+																						leftPageNum);
 
-						/* Now we actually add the content to our output PDF */
-						cb.addTemplate(leftPage, .5f, 0, 0, .5f, 60, 70); // 120
+							/*
+							 * Check to see whether there is any content on the
+							 * page. If there isn't, then we'll insert a blank
+							 * page. Note that this does not take into account
+							 * the possibility there are specific visual tricks
+							 * to make it "seem" blank when in fact it isn't.
+							 */
+							/*
+							 * if (leftPage.getInternalBuffer().size() == 0) {
+							 * logger.debug(
+							 * "Found an empty page in source, adding blank page to destination"
+							 * ); document.newPage(); }
+							 */
+
+							/* Now we actually add the content to our output PDF */
+							cb.addTemplate(leftPage, .5f, 0, 0, .5f, 60, 70); // 120
+						}
 					}
 				}
 
