@@ -41,7 +41,7 @@ public class SignatureEngine1
 
 			int numOfPages = reader.getNumberOfPages();
 			int origNumOfPages = numOfPages;
-			logger.debug("There are " + numOfPages + " in this document");
+			logger.debug("There are " + numOfPages + " pages in this document");
 
 			if (numOfPages % 2 != 0)
 			{
@@ -123,10 +123,10 @@ public class SignatureEngine1
 			if (makeSinglePDF)
 			{
 				document = new Document(new Rectangle(width, height));
+				String outputFileName = outputDirectory + "/" + jobName + "_master" + ".pdf";
+				logger.info("Our output: " + outputFileName);
 				outputPDFWriter = PdfWriter.getInstance(document,
-														new FileOutputStream(outputDirectory + jobName
-																				+ "_master"
-																				+ ".pdf"));
+														new FileOutputStream(outputFileName));
 
 				/*
 				 * Make sure that if there are empty pages in the source, to
