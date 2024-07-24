@@ -18,6 +18,12 @@
 	</properties>
 
 	<dependencies>
+		<!-- INI files -->
+		<dependency>
+			<groupId>org.ini4j</groupId>
+			<artifactId>ini4j</artifactId>
+			<version>0.5.4</version>
+		</dependency>
 
 		<!-- Uses the awesome iText library to handle the actual heavy-lifting 
 			of working with the PDFs -->

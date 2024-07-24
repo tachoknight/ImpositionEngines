@@ -1,15 +1,15 @@
 package com.manhattansurface.ImpositionEngines;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import org.ini4j.Ini;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.itextpdf.awt.geom.AffineTransform;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
-import com.itextpdf.text.PageSize;
 import com.itextpdf.text.Rectangle;
 import com.itextpdf.text.pdf.BaseFont;
 import com.itextpdf.text.pdf.PdfContentByte;
@@ -20,13 +20,17 @@ import com.itextpdf.text.pdf.PdfWriter;
 public class SignatureEngine1 {
 	private static final Logger logger = LoggerFactory.getLogger(SignatureEngine1.class);
 
-	private static float getLetterScale(float width, float height) {
-		float scaleX = PageSize.LETTER.getWidth() / width;
-		float scaleY = PageSize.LETTER.getHeight() / height;
-		return Math.min(scaleX, scaleY);
-	}
-
 	public SignatureEngine1() {
+		// We want to read our ini file to get the configuration of the page content
+		// placement
+
+		// First we need to get the configuration file
+		try {
+			Ini ini = new Ini(new File("config.ini"));
+		} catch (IOException e) {			
+			logger.error("Whoops, got an IOException when trying to read the ini file: " + e.getLocalizedMessage(), e);
+		}
+
 	}
 
 	public void impose(String jobName,
