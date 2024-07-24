@@ -6,8 +6,10 @@ import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.itextpdf.awt.geom.AffineTransform;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.PageSize;
 import com.itextpdf.text.Rectangle;
 import com.itextpdf.text.pdf.BaseFont;
 import com.itextpdf.text.pdf.PdfContentByte;
@@ -15,27 +17,29 @@ import com.itextpdf.text.pdf.PdfImportedPage;
 import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.PdfWriter;
 
-public class SignatureEngine1
-{
-	private static final Logger	logger	= LoggerFactory.getLogger(SignatureEngine1.class);
+public class SignatureEngine1 {
+	private static final Logger logger = LoggerFactory.getLogger(SignatureEngine1.class);
 
-	public SignatureEngine1()
-	{
+	private static float getLetterScale(float width, float height) {
+		float scaleX = PageSize.LETTER.getWidth() / width;
+		float scaleY = PageSize.LETTER.getHeight() / height;
+		return Math.min(scaleX, scaleY);
 	}
 
-	public void impose(	String jobName,
-						String fileName,
-						String outputDirectory,
-						int sheetsPerSignature,
-						boolean makeSinglePDF)
-	{
+	public SignatureEngine1() {
+	}
+
+	public void impose(String jobName,
+			String fileName,
+			String outputDirectory,
+			int sheetsPerSignature,
+			boolean makeSinglePDF) {
 		logger.debug("Sheets Per Signature: " + sheetsPerSignature);
 
-		try
-		{
-			BaseFont bf = BaseFont.createFont(	BaseFont.HELVETICA,
-												BaseFont.CP1252,
-												BaseFont.NOT_EMBEDDED);
+		try {
+			BaseFont bf = BaseFont.createFont(BaseFont.HELVETICA,
+					BaseFont.CP1252,
+					BaseFont.NOT_EMBEDDED);
 
 			PdfReader reader = new PdfReader(fileName);
 
@@ -43,14 +47,13 @@ public class SignatureEngine1
 			int origNumOfPages = numOfPages;
 			logger.debug("There are " + numOfPages + " pages in this document");
 
-			if (numOfPages % 2 != 0)
-			{
+			if (numOfPages % 2 != 0) {
 				logger.debug("Odd number of pages ... gonna be inserting one");
 				numOfPages = numOfPages + 1;
 			}
 
 			logger.debug("We are now going to say that there are " + numOfPages
-							+ " in this document");
+					+ " in this document");
 
 			/* The size of our document */
 			Rectangle psize = reader.getPageSize(1);
@@ -88,14 +91,13 @@ public class SignatureEngine1
 			int maxPageNumInSig = PAGES_PER_SHEET * sheetsPerSignature;
 			logger.debug("Max Pages per Signature: " + maxPageNumInSig);
 
-			if (numOfPages < maxPageNumInSig)
-			{
+			if (numOfPages < maxPageNumInSig) {
 				logger.error("*** Source PDF has fewer pages than a signature (source has " + numOfPages
-								+ " page"
-								+ (numOfPages > 1 ? "s" : "\"\"")
-								+ " and there are "
-								+ maxPageNumInSig
-								+ " pages per signature).");
+						+ " page"
+						+ (numOfPages > 1 ? "s" : "\"\"")
+						+ " and there are "
+						+ maxPageNumInSig
+						+ " pages per signature).");
 				logger.error("*** Please adjust the source to fit " + maxPageNumInSig + " pages");
 				logger.error("*** NOT CONTINUING ***");
 				return;
@@ -120,13 +122,12 @@ public class SignatureEngine1
 			Document document = null;
 			PdfWriter outputPDFWriter = null;
 			PdfContentByte cb = null;
-			if (makeSinglePDF)
-			{
+			if (makeSinglePDF) {
 				document = new Document(new Rectangle(width, height));
 				String outputFileName = outputDirectory + "/" + jobName + "_master" + ".pdf";
 				logger.info("Our output: " + outputFileName);
 				outputPDFWriter = PdfWriter.getInstance(document,
-														new FileOutputStream(outputFileName));
+						new FileOutputStream(outputFileName));
 
 				/*
 				 * Make sure that if there are empty pages in the source, to
@@ -139,26 +140,22 @@ public class SignatureEngine1
 				cb = outputPDFWriter.getDirectContent();
 			}
 
-			for (int sigNum = 0; sigNum < numberOfSignatures; ++sigNum)
-			{
+			for (int sigNum = 0; sigNum < numberOfSignatures; ++sigNum) {
 				logger.debug("On SigNum " + (sigNum + 1) + " of " + numberOfSignatures);
 
 				/* New PDF for each signature if that's what we want */
-				if (makeSinglePDF == false)
-				{
+				if (makeSinglePDF == false) {
 					document = new Document(new Rectangle(width, height));
 					/* Set the name of the PDF */
 					outputPDFWriter = PdfWriter.getInstance(document,
-															new FileOutputStream(outputDirectory + jobName
-																					+ "sig"
-																					+ (sigNum + 1)
-																					+ ".pdf"));
+							new FileOutputStream(outputDirectory + jobName
+									+ "sig"
+									+ (sigNum + 1)
+									+ ".pdf"));
 					document.open();
 
 					cb = outputPDFWriter.getDirectContent();
-				}
-				else
-				{
+				} else {
 					/*
 					 * We're making a single PDF, but we need to be able to tell
 					 * what signature we're on, so we're going to add a dummy
@@ -168,11 +165,11 @@ public class SignatureEngine1
 
 					cb.beginText();
 					cb.setFontAndSize(bf, 32);
-					cb.showTextAligned(	PdfContentByte.ALIGN_CENTER,
-										"Front separator page for SIGNATURE " + (sigNum + 1),
-										width / 2,
-										height / 2,
-										0);
+					cb.showTextAligned(PdfContentByte.ALIGN_CENTER,
+							"Front separator page for SIGNATURE " + (sigNum + 1),
+							width / 2,
+							height / 2,
+							0);
 					cb.endText();
 
 					/*
@@ -183,11 +180,11 @@ public class SignatureEngine1
 
 					cb.beginText();
 					cb.setFontAndSize(bf, 32);
-					cb.showTextAligned(	PdfContentByte.ALIGN_CENTER,
-										"Back separator page for SIGNATURE " + (sigNum + 1),
-										width / 2,
-										height / 2,
-										0);
+					cb.showTextAligned(PdfContentByte.ALIGN_CENTER,
+							"Back separator page for SIGNATURE " + (sigNum + 1),
+							width / 2,
+							height / 2,
+							0);
 					cb.endText();
 
 				}
@@ -206,14 +203,13 @@ public class SignatureEngine1
 				 * Now for each of the pages we're going to handle in this
 				 * signature
 				 */
-				for (int handledPages = 0; handledPages < (maxPageNumInSig / 2); ++handledPages)
-				{
+				for (int handledPages = 0; handledPages < (maxPageNumInSig / 2); ++handledPages) {
 					/* This is a page in the new document */
 					document.newPage();
 
 					logger.debug("Currently working on page " + currentPageInDoc
-									+ " of "
-									+ numOfPages);
+							+ " of "
+							+ numOfPages);
 
 					/************************************************************************
 					 * Check whether we've run out of pages in our source
@@ -222,19 +218,18 @@ public class SignatureEngine1
 					 * of pages
 					 ************************************************************************/
 
-					if (currentPageInDoc > numOfPages)
-					{
+					if (currentPageInDoc > numOfPages) {
 						logger.debug("-->" + currentPageInDoc
-										+ " > "
-										+ numOfPages
-										+ " so we added the page but not going further");
+								+ " > "
+								+ numOfPages
+								+ " so we added the page but not going further");
 						cb.beginText();
 						cb.setFontAndSize(bf, 19);
-						cb.showTextAligned(	PdfContentByte.ALIGN_CENTER,
-											"",
-											width / 2,
-											height / 2,
-											0);
+						cb.showTextAligned(PdfContentByte.ALIGN_CENTER,
+								"",
+								width / 2,
+								height / 2,
+								0);
 						cb.endText();
 						continue;
 					}
@@ -245,16 +240,13 @@ public class SignatureEngine1
 					 ************************************************************************/
 
 					/* Now we get the right pages */
-					if ((handledPages + 1) % 2 == 0)
-					{
+					if ((handledPages + 1) % 2 == 0) {
 						logger.debug("We're on even, so it will be small / big");
 						rightPageNum = magicNumber - (handledPages + 1) + firstPageOfSig;
 						leftPageNum = magicNumber - rightPageNum + (firstPageOfSig * 2);
 
 						logger.debug("LPN: " + leftPageNum + " RPN: " + rightPageNum);
-					}
-					else
-					{
+					} else {
 						logger.debug("We're on odd, so it will be big / small");
 						leftPageNum = magicNumber - (handledPages + 1) + firstPageOfSig;
 						rightPageNum = magicNumber - leftPageNum + (firstPageOfSig * 2);
@@ -278,63 +270,28 @@ public class SignatureEngine1
 					 * First we'll do the right side (somewhat arbitrary here
 					 * ... could be left)
 					 */
-					if (rightPageNum <= numOfPages)
-					{
+					if (rightPageNum <= numOfPages) {
 						logger.debug("On right side, adding page " + rightPageNum);
 						PdfImportedPage rightPage = outputPDFWriter.getImportedPage(reader,
-																					rightPageNum);
+								rightPageNum);
 
-						/*
-						 * Check to see whether there is any content on the
-						 * page. If there isn't, then we'll insert a blank page.
-						 * Note that this does not take into account the
-						 * possibility there are specific visual tricks to make
-						 * it "seem" blank when in fact it isn't.
-						 */
-						/*
-						 * if (rightPage.getInternalBuffer().size() == 0) {
-						 * logger.debug(
-						 * "Found an empty page in source, adding blank page to destination"
-						 * ); document.newPage(); }
-						 */
-
-						/* Now we actually add the content to our output PDF */
-						/* Parameter 6 sets the margin per the matrix:
-						 * http://stderr.org/doc/libitext-java-doc/www/tutorial/ch10.html
-						 */
-						cb.addTemplate(rightPage, .5f, 0, 0, .5f, width / 2 + 30, 140); 
+						// cb.addTemplate(rightPage, 0.5f, 0, 0, .5f, width / 2 + 30, 140);
+						cb.addTemplate(rightPage, 0.75f, 0, 0, 0.75f, (width / 2) - 40, 20);
 					}
 
-					if (leftPageNum <= numOfPages)
-					{
+					if (leftPageNum <= numOfPages) {
 						logger.debug("On left side, adding page " + leftPageNum);
-						if (leftPageNum > origNumOfPages)
-						{
+						if (leftPageNum > origNumOfPages) {
 							logger.warn("...but there is no page " + leftPageNum
-										+ " in the document, so adding an empty");
+									+ " in the document, so adding an empty");
 							document.newPage();
-						}
-						else
-						{
-							PdfImportedPage leftPage = outputPDFWriter.getImportedPage(	reader,
-																						leftPageNum);
-
-							/*
-							 * Check to see whether there is any content on the
-							 * page. If there isn't, then we'll insert a blank
-							 * page. Note that this does not take into account
-							 * the possibility there are specific visual tricks
-							 * to make it "seem" blank when in fact it isn't.
-							 */
-							/*
-							 * if (leftPage.getInternalBuffer().size() == 0) {
-							 * logger.debug(
-							 * "Found an empty page in source, adding blank page to destination"
-							 * ); document.newPage(); }
-							 */
+						} else {
+							PdfImportedPage leftPage = outputPDFWriter.getImportedPage(reader,
+									leftPageNum);
 
 							/* Now we actually add the content to our output PDF */
-							cb.addTemplate(leftPage, .5f, 0, 0, .5f, 60, 140); 
+							// cb.addTemplate(leftPage, .5f, 0, 0, .5f, 60, 140);
+							cb.addTemplate(leftPage, 0.75f, 0, 0, 0.75f, -30, 20);
 						}
 					}
 				}
@@ -357,13 +314,9 @@ public class SignatureEngine1
 			/* And if we were making one big PDF, we're finally done with it */
 			if (makeSinglePDF)
 				document.close();
-		}
-		catch (IOException e)
-		{
+		} catch (IOException e) {
 			logger.error("Whoops, got an IOException: " + e.getLocalizedMessage(), e);
-		}
-		catch (DocumentException e)
-		{
+		} catch (DocumentException e) {
 			logger.error("Whoops, got a DocumentException: " + e.getLocalizedMessage(), e);
 		}
 	}
