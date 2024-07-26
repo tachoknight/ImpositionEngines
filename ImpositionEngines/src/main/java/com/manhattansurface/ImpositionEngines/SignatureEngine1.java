@@ -20,17 +20,18 @@ import com.itextpdf.text.pdf.PdfWriter;
 public class SignatureEngine1 {
 	private static final Logger logger = LoggerFactory.getLogger(SignatureEngine1.class);
 
+	private Ini configFile;
+
 	public SignatureEngine1() {
 		// We want to read our ini file to get the configuration of the page content
 		// placement
 
 		// First we need to get the configuration file
 		try {
-			Ini ini = new Ini(new File("config.ini"));
-		} catch (IOException e) {			
+			configFile = new Ini(new File("config.ini"));
+		} catch (IOException e) {
 			logger.error("Whoops, got an IOException when trying to read the ini file: " + e.getLocalizedMessage(), e);
 		}
-
 	}
 
 	public void impose(String jobName,
@@ -279,8 +280,18 @@ public class SignatureEngine1 {
 						PdfImportedPage rightPage = outputPDFWriter.getImportedPage(reader,
 								rightPageNum);
 
+						// Now let's get the configuration for the right page
+						float xScalingFactor = Float.parseFloat(configFile.get("rightpage", "x_scaling_factor"));
+						float yScalingFactor = Float.parseFloat(configFile.get("rightpage", "y_scaling_factor"));
+						float xOffset = Float.parseFloat(configFile.get("rightpage", "x_offset"));
+						float yOffset = Float.parseFloat(configFile.get("rightpage", "y_offset"));
+						float xRotation = Float.parseFloat(configFile.get("rightpage", "x_rotation"));
+						float yRotation = Float.parseFloat(configFile.get("rightpage", "y_rotation"));
+
 						// cb.addTemplate(rightPage, 0.5f, 0, 0, .5f, width / 2 + 30, 140);
-						cb.addTemplate(rightPage, 0.75f, 0, 0, 0.75f, (width / 2) - 40, 20);
+						cb.addTemplate(rightPage, xScalingFactor, xRotation, yRotation, yScalingFactor,
+								(width / 2) - xOffset,
+								yOffset);
 					}
 
 					if (leftPageNum <= numOfPages) {
@@ -293,9 +304,19 @@ public class SignatureEngine1 {
 							PdfImportedPage leftPage = outputPDFWriter.getImportedPage(reader,
 									leftPageNum);
 
+							// Now let's get the configuration for the right page
+							float xScalingFactor = Float.parseFloat(configFile.get("leftpage", "x_scaling_factor"));
+							float yScalingFactor = Float.parseFloat(configFile.get("leftpage", "y_scaling_factor"));
+							float xOffset = Float.parseFloat(configFile.get("leftpage", "x_offset"));
+							float yOffset = Float.parseFloat(configFile.get("leftpage", "y_offset"));
+							float xRotation = Float.parseFloat(configFile.get("leftpage", "x_rotation"));
+							float yRotation = Float.parseFloat(configFile.get("leftpage", "y_rotation"));
+
 							/* Now we actually add the content to our output PDF */
 							// cb.addTemplate(leftPage, .5f, 0, 0, .5f, 60, 140);
-							cb.addTemplate(leftPage, 0.75f, 0, 0, 0.75f, -30, 20);
+							cb.addTemplate(leftPage, xScalingFactor, xRotation, yRotation, yScalingFactor,
+									xOffset,
+									yOffset);
 						}
 					}
 				}
