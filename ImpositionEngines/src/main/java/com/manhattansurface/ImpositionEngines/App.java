@@ -44,6 +44,6 @@ public class App
     				pagesPerSignature,
     				impose);
     	
-        logger.info( "Hello World!" );
+        logger.info( "*** F I N I S H E D ***" );
     }
 }
