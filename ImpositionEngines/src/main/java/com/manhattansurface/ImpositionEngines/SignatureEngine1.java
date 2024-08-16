@@ -66,6 +66,16 @@ public class SignatureEngine1 {
 			float height = psize.getWidth();
 			logger.debug("Source width: " + width + " Height: " + height);
 
+			// Here want to get the width and height of the page
+			// from the configuration file
+			// The page size is in inches, but we need to convert it to points
+			// which is 72 points per inch, so we multiply by 72
+
+			width = 72 * Float.parseFloat(configFile.get("page_size", "width"));
+			height = 72 * Float.parseFloat(configFile.get("page_size", "height"));
+			
+			logger.info("Our output page is: Width: " + width + " Height: " + height);
+
 			/*
 			 * For the number of sheets (actual physical pieces of paper) in the
 			 * signature PAGES_PER_SHEET is the number of printed pages on a
@@ -128,6 +138,8 @@ public class SignatureEngine1 {
 			PdfWriter outputPDFWriter = null;
 			PdfContentByte cb = null;
 			if (makeSinglePDF) {
+				
+
 				document = new Document(new Rectangle(width, height));
 				String outputFileName = outputDirectory + "/" + jobName + "_master" + ".pdf";
 				logger.info("Our output: " + outputFileName);
