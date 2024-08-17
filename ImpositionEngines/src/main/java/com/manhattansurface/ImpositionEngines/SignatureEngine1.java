@@ -61,19 +61,21 @@ public class SignatureEngine1 {
 					+ " in this document");
 
 			/* The size of our document */
+			/*
 			Rectangle psize = reader.getPageSize(1);
 			float width = psize.getHeight();
 			float height = psize.getWidth();
-			logger.debug("Source width: " + width + " Height: " + height);
-
+			logger.info("Source width: " + width + " Height: " + height);
+ 			*/
+			
 			// Here want to get the width and height of the page
 			// from the configuration file
 			// The page size is in inches, but we need to convert it to points
 			// which is 72 points per inch, so we multiply by 72
 
-			width = 72 * Float.parseFloat(configFile.get("page_size", "width"));
-			height = 72 * Float.parseFloat(configFile.get("page_size", "height"));
-			
+			float width = (float) 72 * Float.parseFloat(configFile.get("page_size", "width"));
+			float height = (float) 72 * Float.parseFloat(configFile.get("page_size", "height"));
+
 			logger.info("Our output page is: Width: " + width + " Height: " + height);
 
 			/*
@@ -138,8 +140,6 @@ public class SignatureEngine1 {
 			PdfWriter outputPDFWriter = null;
 			PdfContentByte cb = null;
 			if (makeSinglePDF) {
-				
-
 				document = new Document(new Rectangle(width, height));
 				String outputFileName = outputDirectory + "/" + jobName + "_master" + ".pdf";
 				logger.info("Our output: " + outputFileName);
@@ -203,7 +203,6 @@ public class SignatureEngine1 {
 							height / 2,
 							0);
 					cb.endText();
-
 				}
 
 				/*
