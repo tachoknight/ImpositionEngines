@@ -22,31 +22,30 @@ public class SignatureEngine1 {
 
 	private Ini configFile;
 
-	public SignatureEngine1() {
+	public SignatureEngine1(String jobFile) {
 		// We want to read our ini file to get the configuration of the page content
 		// placement
 
 		// First we need to get the configuration file
 		try {
-			configFile = new Ini(new File("config.ini"));
+			configFile = new Ini(new File(jobFile));
 		} catch (IOException e) {
 			logger.error("Whoops, got an IOException when trying to read the ini file: " + e.getLocalizedMessage(), e);
 		}
 	}
 
-	public void impose(String jobName,
-			String fileName,
-			String outputDirectory,
-			int sheetsPerSignature,
-			boolean makeSinglePDF) {
-		logger.debug("Sheets Per Signature: " + sheetsPerSignature);
+	public void impose() {
+		// Get everything we need from the ini file
+
+
+		logger.debug("Sheets Per Signature: " + configFile.get("job", "sheets_per_signature"));
 
 		try {
 			BaseFont bf = BaseFont.createFont(BaseFont.HELVETICA,
 					BaseFont.CP1252,
 					BaseFont.NOT_EMBEDDED);
 
-			PdfReader reader = new PdfReader(fileName);
+			PdfReader reader = new PdfReader(configFile.get("job", "source"));
 
 			int numOfPages = reader.getNumberOfPages();
 			int origNumOfPages = numOfPages;
@@ -60,13 +59,6 @@ public class SignatureEngine1 {
 			logger.debug("We are now going to say that there are " + numOfPages
 					+ " in this document");
 
-			/* The size of our document */
-			/*
-			Rectangle psize = reader.getPageSize(1);
-			float width = psize.getHeight();
-			float height = psize.getWidth();
-			logger.info("Source width: " + width + " Height: " + height);
- 			*/
 			
 			// Here want to get the width and height of the page
 			// from the configuration file
@@ -83,7 +75,7 @@ public class SignatureEngine1 {
 			 * signature PAGES_PER_SHEET is the number of printed pages on a
 			 * single piece of paper, front and back
 			 */
-			final int PAGES_PER_SHEET = 4; // make a parameter at some point
+			int PAGES_PER_SHEET = Integer.parseInt(configFile.get("job", "pages_per_sheet")); 
 			logger.debug("PAGES_PER_SHEET = " + PAGES_PER_SHEET);
 
 			/*
@@ -91,6 +83,8 @@ public class SignatureEngine1 {
 			 * with, which translates into the number of PDFs made from the book
 			 * which need to be printed sequentially
 			 */
+			int sheetsPerSignature = Integer.parseInt(configFile.get("job", "sheets_per_signature"));
+
 			float realNumOfSigs = ((float) numOfPages / PAGES_PER_SHEET) / sheetsPerSignature;
 			logger.debug("Real number of sigs is " + realNumOfSigs);
 
@@ -136,12 +130,19 @@ public class SignatureEngine1 {
 			 * The PDF we will be outputting to...this can be either one
 			 * (makeSinglePDF == true) or multiple, one per signature
 			 */
+			boolean makeSinglePDF = configFile.get("job", "output").equalsIgnoreCase("true");
+
 			Document document = null;
 			PdfWriter outputPDFWriter = null;
 			PdfContentByte cb = null;
+
 			if (makeSinglePDF) {
 				document = new Document(new Rectangle(width, height));
-				String outputFileName = outputDirectory + "/" + jobName + "_master" + ".pdf";
+				String outputFileName = configFile.get("job", "output_directory") 
+										+ "/" 
+										+ configFile.get("job", "name") 
+										+ "_master" 
+										+ ".pdf";
 				logger.info("Our output: " + outputFileName);
 				outputPDFWriter = PdfWriter.getInstance(document,
 						new FileOutputStream(outputFileName));
@@ -165,10 +166,11 @@ public class SignatureEngine1 {
 					document = new Document(new Rectangle(width, height));
 					/* Set the name of the PDF */
 					outputPDFWriter = PdfWriter.getInstance(document,
-							new FileOutputStream(outputDirectory + jobName
-									+ "sig"
-									+ (sigNum + 1)
-									+ ".pdf"));
+							new FileOutputStream(configFile.get("job", "output_directory") 
+												 + configFile.get("job", "name")
+												 + "sig"
+												 + (sigNum + 1)
+												 + ".pdf"));
 					document.open();
 
 					cb = outputPDFWriter.getDirectContent();
